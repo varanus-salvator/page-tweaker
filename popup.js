@@ -36,19 +36,28 @@ function render() {
 
   list.innerHTML = tweaks.map((t, i) => {
     const domainStr = Array.isArray(t.domains) ? t.domains.join(', ') : (t.domain || '');
+    const displayName = t.name || domainStr || '(geen naam)';
+    const version = t.version ? ` v${t.version}` : '';
     return `
     <div class="tweak ${t.enabled ? '' : 'disabled'}" data-i="${i}">
-      <div class="tweak-header">
-        <input type="text" class="domain" value="${esc(domainStr)}" placeholder="parool.nl, voorbeeld.com">
-        <label><input type="checkbox" class="toggle" ${t.enabled ? 'checked' : ''}> aan</label>
+      <div class="tweak-row">
+        <div class="tweak-title">
+          <div class="tweak-name">${esc(displayName)}${version}</div>
+          <div class="tweak-domain">${esc(domainStr)}</div>
+        </div>
+        <div class="tweak-actions">
+          <label class="tweak-toggle"><input type="checkbox" class="toggle" ${t.enabled ? 'checked' : ''}> aan</label>
+          <button class="tweak-expand" title="Bewerken">&#9881;</button>
+          <button class="tweak-del" title="Verwijder">&times;</button>
+        </div>
       </div>
-      ${t.name ? `<div class="label" style="color:#e94560;margin-top:0;margin-bottom:4px">${esc(t.name)}</div>` : ''}
-      <div class="label">JavaScript</div>
-      <textarea class="js" placeholder="document.querySelector('.paywall')?.remove();">${esc(t.js)}</textarea>
-      <div class="label">CSS</div>
-      <textarea class="css" placeholder=".overlay { display: none !important; }">${esc(t.css)}</textarea>
-      <div class="actions">
-        <button class="danger del">Verwijder</button>
+      <div class="tweak-body">
+        <div class="label">Domein(en) — komma-gescheiden voor meerdere</div>
+        <input type="text" class="domain" value="${esc(domainStr)}" placeholder="parool.nl, voorbeeld.com">
+        <div class="label">JavaScript</div>
+        <textarea class="js" placeholder="document.querySelector('.paywall')?.remove();">${esc(t.js)}</textarea>
+        <div class="label">CSS</div>
+        <textarea class="css" placeholder=".overlay { display: none !important; }">${esc(t.css)}</textarea>
       </div>
     </div>
   `;
@@ -80,10 +89,15 @@ function render() {
       tweaks[i].css = e.target.value;
       save();
     });
-    el.querySelector('.del').addEventListener('click', () => {
+    el.querySelector('.tweak-del').addEventListener('click', () => {
+      const name = tweaks[i].name || tweaks[i].domain || '(geen naam)';
+      if (!confirm(`Verwijder "${name}"?`)) return;
       tweaks.splice(i, 1);
       save();
       render();
+    });
+    el.querySelector('.tweak-expand').addEventListener('click', () => {
+      el.classList.toggle('expanded');
     });
   });
 }
